@@ -47,10 +47,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+//    private suspend fun mockfileDownloader() {
+//        withContext(Dispatchers.Main) {
+//            startButton.text = "Downloading"
+//            progressText.text = "Download Progress: 0%"
+//        }
+//
+//        for (downloadProgress in 0..100 step 10) {
+//            Log.d(TAG, "Download Progress $downloadProgress%")
+//            withContext(Dispatchers.Main) {
+//                progressText.text = "Download Progress: $downloadProgress%"
+//            }
+//            delay(1000)
+//        }
+//
+//        withContext(Dispatchers.Main) {
+//            progressText.text = "Download Complete"
+//            startButton.text = "START"
+//        }
+//    }
     private suspend fun mockfileDownloader() {
         withContext(Dispatchers.Main) {
-            startButton.text = getString(R.string.download)
-            progressText.text = " Download Progress: 0%"
+            startButton.text = "Downloading..."
+            progressText.text = "Download Progress: 0%"
         }
 
         for (downloadProgress in 0..100 step 10) {
@@ -62,15 +81,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         withContext(Dispatchers.Main) {
-            progressText.text = ""
+            startButton.text = "Start"  // Reset the Start Button text
+            progressText.text = "Download Complete"
+            delay(2000)
+            restartActivity()
         }
     }
-
+    private fun restartActivity() {
+        val intent = intent
+        finish()
+        startActivity(intent)
+    }
     fun startDownload(view: View) {
-        job = CoroutineScope(Dispatchers.Default).launch { mockfileDownloader() }
+        if (job == null || job?.isCancelled == true) {
+            job = CoroutineScope(Dispatchers.Default).launch { mockfileDownloader() }
+        }
     }
 
     fun stopDownload(view: View) {
         job?.cancel()
+        job = null
+        runOnUiThread{
+            progressText.text = "Download Canceled"
+            startButton.text = "START"
+        }
     }
 }
