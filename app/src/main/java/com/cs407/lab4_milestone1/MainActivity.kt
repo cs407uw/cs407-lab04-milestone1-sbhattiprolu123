@@ -1,5 +1,6 @@
 package com.cs407.lab4_milestone1
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         toggleSwitch = findViewById(R.id.toggleSwitch)
         progressText = findViewById(R.id.progressText)
 
-        progressText.text = ""
+        progressText.text = "Download Progress: 0%"
 
         startButton.setOnClickListener { startDownload(it) }
         stopButton.setOnClickListener { stopDownload(it) }
@@ -47,28 +48,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private suspend fun mockfileDownloader() {
-//        withContext(Dispatchers.Main) {
-//            startButton.text = "Downloading"
-//            progressText.text = "Download Progress: 0%"
-//        }
-//
-//        for (downloadProgress in 0..100 step 10) {
-//            Log.d(TAG, "Download Progress $downloadProgress%")
-//            withContext(Dispatchers.Main) {
-//                progressText.text = "Download Progress: $downloadProgress%"
-//            }
-//            delay(1000)
-//        }
-//
-//        withContext(Dispatchers.Main) {
-//            progressText.text = "Download Complete"
-//            startButton.text = "START"
-//        }
-//    }
     private suspend fun mockfileDownloader() {
         withContext(Dispatchers.Main) {
-            startButton.text = "Downloading..."
+            startButton.text = "DOWNLOADING..."
             progressText.text = "Download Progress: 0%"
         }
 
@@ -81,17 +63,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         withContext(Dispatchers.Main) {
-            startButton.text = "Start"  // Reset the Start Button text
             progressText.text = "Download Complete"
-            delay(2000)
+            startButton.text = "START"
             restartActivity()
         }
+        delay(2000)
     }
+
     private fun restartActivity() {
         val intent = intent
         finish()
         startActivity(intent)
     }
+
     fun startDownload(view: View) {
         if (job == null || job?.isCancelled == true) {
             job = CoroutineScope(Dispatchers.Default).launch { mockfileDownloader() }
@@ -101,9 +85,14 @@ class MainActivity : AppCompatActivity() {
     fun stopDownload(view: View) {
         job?.cancel()
         job = null
-        runOnUiThread{
+        runOnUiThread {
             progressText.text = "Download Canceled"
             startButton.text = "START"
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job?.cancel()
     }
 }
